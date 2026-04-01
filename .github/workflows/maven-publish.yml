@@ -2,46 +2,27 @@ name: pondsdataupdate
 
 on:
   workflow_dispatch:
-  release:
-    types: [created]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: write
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-        server-id: github
-        settings-path: ${{ github.workspace }}
 
     - name: Build Project
       run: mvn clean package
 
+    - name: Install Playwright Browsers
+      run: mvn exec:java -Dexec.mainClass="com.microsoft.playwright.CLI" -Dexec.args="install"
+
     - name: Run Bgardhdiv
       run: mvn exec:java -Dexec.mainClass="pondsdataupdate.Bgardhdiv" -e
-
-    - name: Run Gohandiv
-      run: mvn exec:java -Dexec.mainClass="Gohandiv"
-
-    - name: Run RohtakTest
-      run: mvn exec:java -Dexec.mainClass="RohtakTest"
-
-    - name: Run Sampladiv
-      run: mvn exec:java -Dexec.mainClass="Sampladiv"
-
-    - name: Publish to GitHub Packages
-      run: mvn deploy -s settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
