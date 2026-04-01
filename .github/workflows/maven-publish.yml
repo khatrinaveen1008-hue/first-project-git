@@ -24,16 +24,16 @@ jobs:
         server-id: github
         settings-path: ${{ github.workspace }}
 
-    - name: Bgardhdiv.java
+    - name: pondsdataupdate.Bgardhdiv.java
       run: mvn exec:java -Dexec.mainClass="com.example.Bgardhdiv"
       
-    - name: Gohandiv.java
+    - name: pondsdataupdate.Gohandiv.java
       run: mvn exec:java -Dexec.mainClass="com.example.Gohandiv"
       
-    - name: RohtakTest.java
+    - name: pondsdataupdate.RohtakTest.java
       run: mvn exec:java -Dexec.mainClass="com.example.RohtakTest"
       
-    - name: Sampladiv.java
+    - name: pondsdataupdate.Sampladiv.java
       run: mvn exec:java -Dexec.mainClass="com.example.Sampladiv"
 
     - name: Build with Maven
