@@ -24,37 +24,57 @@ jobs:
         server-id: github
         settings-path: ${{ github.workspace }}
 
-    - name: Debug - Find all Java files
+    - name: Find and display Java files
       run: |
-        echo "=== Finding all Java files ==="
+        echo "=== Java files in repository ==="
         find . -name "*.java" -type f
         echo ""
-        echo "=== Checking Bgardhdiv.java content ==="
-        find . -name "Bgardhdiv.java" -exec head -10 {} \;
+        echo "=== First 20 lines of Bgardhdiv.java ==="
+        find . -name "Bgardhdiv.java" -exec head -20 {} \;
 
-    - name: Compile with Maven
-      run: mvn clean compile
-
-    - name: Debug - List compiled classes
+    - name: Compile all Java files
       run: |
-        echo "=== Compiled classes ==="
-        find target/classes -name "*.class" | head -20
+        mkdir -p classes
+        # Try to compile with classpath if lib folder exists
+        if [ -d "lib" ]; then
+          javac -cp "lib/*" -d classes $(find . -name "*.java" -not -path "./classes/*")
+        else
+          javac -d classes $(find . -name "*.java" -not -path "./classes/*")
+        fi
+        echo "Compilation complete. Compiled classes:"
+        find classes -name "*.class"
 
     - name: Run Class 1 - Bgardhdiv
-      run: mvn exec:java -Dexec.mainClass="Bgardhdiv" -e
-      continue-on-error: false
+      run: |
+        if [ -d "lib" ]; then
+          java -cp "classes:lib/*" Bgardhdiv
+        else
+          java -cp classes Bgardhdiv
+        fi
       
     - name: Run Class 2 - Gohandiv
-      run: mvn exec:java -Dexec.mainClass="Gohandiv" -e
-      continue-on-error: false
+      run: |
+        if [ -d "lib" ]; then
+          java -cp "classes:lib/*" Gohandiv
+        else
+          java -cp classes Gohandiv
+        fi
       
     - name: Run Class 3 - RohtakTest
-      run: mvn exec:java -Dexec.mainClass="RohtakTest" -e
-      continue-on-error: false
+      run: |
+        if [ -d "lib" ]; then
+          java -cp "classes:lib/*" RohtakTest
+        else
+          java -cp classes RohtakTest
+        fi
       
     - name: Run Class 4 - Sampladiv
-      run: mvn exec:java -Dexec.mainClass="Sampladiv" -e
-      continue-on-error: false
+      run: |
+        if [ -d "lib" ]; then
+          java -cp "classes:lib/*" Sampladiv
+        else
+          java -cp classes Sampladiv
+        fi
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
