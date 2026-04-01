@@ -30,7 +30,7 @@ jobs:
       run: mvn clean package
 
     - name: Run Bgardhdiv
-      run: mvn exec:java -Dexec.mainClass="pondsdataupdate.Bgardhdiv"
+      run: mvn exec:java -Dexec.mainClass="pondsdataupdate.Bgardhdiv" -e
 
     - name: Run Gohandiv
       run: mvn exec:java -Dexec.mainClass="Gohandiv"
