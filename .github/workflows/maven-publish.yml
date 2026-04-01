@@ -1,5 +1,13 @@
+name: pondsdataupdate
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -13,22 +21,24 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'maven' # Speeds up subsequent runs
 
-    - name: Compile Project
-    # This ensures all dependencies in pom.xml are downloaded and classes are built
-      run: mvn clean compile
-
-    - name: Run Data Updates
-    # Use Maven Exec plugin. It automatically handles the classpath for you.
-    # Replace 'com.yourpackage' with the actual package name found in your .java files.
+    - name: Compile and run all classes
       run: |
-        mvn exec:java -Dexec.mainClass="Bgardhdiv"
-        mvn exec:java -Dexec.mainClass="Gohandiv"
-        mvn exec:java -Dexec.mainClass="RohtakTest"
-        mvn exec:java -Dexec.mainClass="Sampladiv"
+        mkdir -p classes
+        javac -d classes $(find . -name "*.java" -not -path "./classes/*")
+        echo "Running Bgardhdiv..."
+        java -cp classes Bgardhdiv
+        echo "Running Gohandiv..."
+        java -cp classes Gohandiv
+        echo "Running RohtakTest..."
+        java -cp classes RohtakTest
+        echo "Running Sampladiv..."
+        java -cp classes Sampladiv
 
-    - name: Build and Deploy
-      run: mvn -B deploy -s ${{ github.workspace }}/settings.xml
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Publish to GitHub Packages Apache Maven
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
