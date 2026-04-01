@@ -1,7 +1,7 @@
 name: pondsdataupdate
 
 on:
-  workflow_dispatch:  # Manual trigger from GitHub UI
+  workflow_dispatch:
   release:
     types: [created]
 
@@ -24,17 +24,37 @@ jobs:
         server-id: github
         settings-path: ${{ github.workspace }}
 
-    - name: pondsdataupdate.Bgardhdiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Bgardhdiv"
+    - name: Debug - Find all Java files
+      run: |
+        echo "=== Finding all Java files ==="
+        find . -name "*.java" -type f
+        echo ""
+        echo "=== Checking Bgardhdiv.java content ==="
+        find . -name "Bgardhdiv.java" -exec head -10 {} \;
+
+    - name: Compile with Maven
+      run: mvn clean compile
+
+    - name: Debug - List compiled classes
+      run: |
+        echo "=== Compiled classes ==="
+        find target/classes -name "*.class" | head -20
+
+    - name: Run Class 1 - Bgardhdiv
+      run: mvn exec:java -Dexec.mainClass="Bgardhdiv" -e
+      continue-on-error: false
       
-    - name: pondsdataupdate.Gohandiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Gohandiv"
+    - name: Run Class 2 - Gohandiv
+      run: mvn exec:java -Dexec.mainClass="Gohandiv" -e
+      continue-on-error: false
       
-    - name: pondsdataupdate.RohtakTest.java
-      run: mvn exec:java -Dexec.mainClass="com.example.RohtakTest"
+    - name: Run Class 3 - RohtakTest
+      run: mvn exec:java -Dexec.mainClass="RohtakTest" -e
+      continue-on-error: false
       
-    - name: pondsdataupdate.Sampladiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Sampladiv"
+    - name: Run Class 4 - Sampladiv
+      run: mvn exec:java -Dexec.mainClass="Sampladiv" -e
+      continue-on-error: false
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
