@@ -1,6 +1,7 @@
 name: pondsdataupdate
 
 on:
+  workflow_dispatch:  # Manual trigger from GitHub UI
   release:
     types: [created]
 
@@ -24,16 +25,16 @@ jobs:
         settings-path: ${{ github.workspace }}
 
     - name: Bgardhdiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Class1"
+      run: mvn exec:java -Dexec.mainClass="com.example.Bgardhdiv"
       
     - name: Gohandiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Class2"
+      run: mvn exec:java -Dexec.mainClass="com.example.Gohandiv"
       
     - name: RohtakTest.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Class3"
+      run: mvn exec:java -Dexec.mainClass="com.example.RohtakTest"
       
     - name: Sampladiv.java
-      run: mvn exec:java -Dexec.mainClass="com.example.Class4"
+      run: mvn exec:java -Dexec.mainClass="com.example.Sampladiv"
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
