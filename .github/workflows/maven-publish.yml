@@ -1,13 +1,5 @@
-name: pondsdataupdate
-
-on:
-  workflow_dispatch:
-  release:
-    types: [created]
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,150 +13,22 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        server-id: github
-        settings-path: ${{ github.workspace }}
+        cache: 'maven' # Speeds up subsequent runs
 
-    - name: STEP 1 - List all files in repository
+    - name: Compile Project
+    # This ensures all dependencies in pom.xml are downloaded and classes are built
+      run: mvn clean compile
+
+    - name: Run Data Updates
+    # Use Maven Exec plugin. It automatically handles the classpath for you.
+    # Replace 'com.yourpackage' with the actual package name found in your .java files.
       run: |
-        echo "=== Full directory structure ==="
-        ls -la
-        echo ""
-        echo "=== Find all Java files ==="
-        find . -name "*.java" -type f
-        echo ""
-        echo "=== Find all class files ==="
-        find . -name "*.class" -type f
+        mvn exec:java -Dexec.mainClass="Bgardhdiv"
+        mvn exec:java -Dexec.mainClass="Gohandiv"
+        mvn exec:java -Dexec.mainClass="RohtakTest"
+        mvn exec:java -Dexec.mainClass="Sampladiv"
 
-    - name: STEP 2 - Check Bgardhdiv.java content
-      run: |
-        echo "=== Looking for Bgardhdiv.java ==="
-        FILE=$(find . -name "Bgardhdiv.java" | head -1)
-        if [ -z "$FILE" ]; then
-          echo "ERROR: Bgardhdiv.java not found!"
-          exit 1
-        fi
-        echo "Found at: $FILE"
-        echo ""
-        echo "=== First 30 lines ==="
-        cat "$FILE" | head -30
-        echo ""
-        echo "=== Check for main method ==="
-        grep -n "main" "$FILE" || echo "No main method found!"
-
-    - name: STEP 3 - Try simple compilation test
-      run: |
-        echo "=== Creating test directory ==="
-        mkdir -p test_classes
-        
-        echo "=== Creating simple test class ==="
-        cat > Test.java << 'EOF'
-        public class Test {
-            public static void main(String[] args) {
-                System.out.println("Java is working!");
-            }
-        }
-        EOF
-        
-        echo "=== Compiling test class ==="
-        javac Test.java
-        
-        echo "=== Running test class ==="
-        java Test
-        
-        echo "=== Test successful! ==="
-
-    - name: STEP 4 - Try Maven compile
-      run: |
-        echo "=== Running mvn clean compile ==="
-        mvn clean compile -e
-        echo ""
-        echo "=== Checking if compilation created classes ==="
-        find target/classes -name "*.class" 2>/dev/null || echo "No classes found in target/classes"
-
-    - name: STEP 5 - Try running with correct classpath
-      run: |
-        echo "=== Attempting to run Bgardhdiv ==="
-        
-        # Try different classpath locations
-        if [ -d "target/classes" ]; then
-          echo "Trying from target/classes..."
-          cd target/classes
-          java Bgardhdiv 2>&1 || true
-          cd ../..
-        fi
-        
-        if [ -d "classes" ]; then
-          echo "Trying from classes directory..."
-          cd classes
-          java Bgardhdiv 2>&1 || true
-          cd ../..
-        fi
-        
-        if [ -d "bin" ]; then
-          echo "Trying from bin directory..."
-          cd bin
-          java Bgardhdiv 2>&1 || true
-          cd ../..
-        fi
-        
-        echo "=== If none worked, checking current directory ==="
-        ls -la *.class 2>/dev/null && java Bgardhdiv 2>&1 || echo "No class files in current directory"
-
-    - name: STEP 6 - Try Maven exec with debug
-      run: |
-        echo "=== Trying mvn exec:java with full debug ==="
-        mvn exec:java -Dexec.mainClass="Bgardhdiv" -X 2>&1 | head -100
-      
-    - name: STEP 7 - Alternative: Compile and run manually
-      run: |
-        echo "=== Manual compilation and execution ==="
-        
-        # Create output directory
-        mkdir -p manual_classes
-        
-        # Find all Java files and compile
-        JAVA_FILES=$(find . -name "*.java" -not -path "./manual_classes/*" -not -path "./target/*")
-        
-        if [ -z "$JAVA_FILES" ]; then
-          echo "ERROR: No Java files found!"
-          exit 1
-        fi
-        
-        echo "Compiling: $JAVA_FILES"
-        javac -d manual_classes $JAVA_FILES 2>&1
-        
-        echo ""
-        echo "=== Compiled classes ==="
-        find manual_classes -name "*.class"
-        
-        echo ""
-        echo "=== Running Bgardhdiv ==="
-        cd manual_classes
-        java Bgardhdiv 2>&1 || echo "Failed to run Bgardhdiv"
-        cd ..
-        
-        echo ""
-        echo "=== Running Gohandiv ==="
-        cd manual_classes
-        java Gohandiv 2>&1 || echo "Failed to run Gohandiv"
-        cd ..
-        
-        echo ""
-        echo "=== Running RohtakTest ==="
-        cd manual_classes
-        java RohtakTest 2>&1 || echo "Failed to run RohtakTest"
-        cd ..
-        
-        echo ""
-        echo "=== Running Sampladiv ==="
-        cd manual_classes
-        java Sampladiv 2>&1 || echo "Failed to run Sampladiv"
-        cd ..
-
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+    - name: Build and Deploy
+      run: mvn -B deploy -s ${{ github.workspace }}/settings.xml
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
