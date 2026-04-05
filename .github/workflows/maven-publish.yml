@@ -25,4 +25,4 @@ jobs:
       run: mvn exec:java -Dexec.mainClass="com.microsoft.playwright.CLI" -Dexec.args="install"
 
     - name: Run Bgardhdiv
-      run: mvn exec:java -Dexec.mainClass="Update Bgardhdiv.java" -e
+      run: mvn exec:java -Dexec.mainClass="src/main/java/pondsdataupdateBgardhdiv" -e
